@@ -1,23 +1,44 @@
 AWSTemplateFormatVersion : 2010-09-09
 
 Description : |
-  My first IaaC 
-
+  This CloudFormation Template was written for 
+  running Kittens Carousel Static Website on EC2. 
+  Kittens Carousel Static Website will be 
+  deployed on Amazon Linux 2 
+  (ami-0022f774911c1d690) EC2 Instance with 
+  custom security group which allows http 
+  connections on port 80 and ssh port 22 from 
+  anywhere. Kittens Carousel Static Website 
+  is downloaded from my Public Github repository,
+  then deployed on Apache Web Server.
 Resources:
+  WebServerSecGrp:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable HTTP for Apache Web Server and SSH for secure connection.
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          Description: Access for Http connection of Webserver . 
+          FromPort: 80
+          IpProtocol: tcp
+          ToPort: 80
+        - CidrIp: 0.0.0.0/0
+          Description: SSH ACCESS FOR CONFIGURATION. 
+          FromPort: 22
+          IpProtocol: tcp
+          ToPort: 22  
   Kitty:
     Type: AWS::EC2::Instance
-    Properties:
+    Properties: 
       ImageId: ami-0022f774911c1d690
       KeyName: Myfirstkey
-      #LaunchTemplate:
-      #  LaunchTemplateId: lt-0315931742a1af8b2
-      #  Version: 1
+      
       InstanceType: t2.micro
       SecurityGroups:
-        - NGNiX-SSH+HTTP
+        - WebServerSecGrp
       Tags:
         - Key : Name
-          Value : MCANMCAN-FT
+          Value : CloudFormation101
       UserData:
        Fn::Base64:
         !Sub |
@@ -27,8 +48,8 @@ Resources:
           sudo yum install git -y
           systemctl enable httpd 
           systemctl start httpd 
-          git clone https://github.com/MCANMCAN/KittenCarousel-AWSCloudFormation.git
-          cd KittenCarousel-AWSCloudFormation
+          git clone https://github.com/MCANMCAN/my-projects.git
+          cd my-projects/AWS/kittens_carousel_website/
           sudo rm -rf /var/www/html/index.html
           sudo cp ./static-web/* /var/www/html/
           sudo systemctl restart httpd
