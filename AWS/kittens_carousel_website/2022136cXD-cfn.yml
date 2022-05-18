@@ -12,7 +12,7 @@ Description : |
   is downloaded from my Public Github repository,
   then deployed on Apache Web Server.
 Resources:
-  WebServerSecGrp:
+  cfnwebserver:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Enable HTTP for Apache Web Server and SSH for secure connection.
@@ -27,29 +27,35 @@ Resources:
           FromPort: 22
           IpProtocol: tcp
           ToPort: 22  
-  Kitty:
+  WebHost:
     Type: AWS::EC2::Instance
     Properties: 
       ImageId: ami-0022f774911c1d690
       KeyName: Myfirstkey
       
       InstanceType: t2.micro
-      SecurityGroups:
-        - WebServerSecGrp
+      SecurityGroupIds:
+        - !Ref cfnwebserver
       Tags:
         - Key : Name
-          Value : CloudFormation101
+          Value : !Sub Web Server of ${AWS::StackName} Stack
       UserData:
        Fn::Base64:
         !Sub |
           #!/bin/bash
-          sudo yum update -y
-          sudo yum install httpd -y
-          sudo yum install git -y
+          yum update -y
+          yum install httpd -y
+          yum install git -y
           systemctl enable httpd 
           systemctl start httpd 
           git clone https://github.com/MCANMCAN/my-projects.git
           cd my-projects/AWS/kittens_carousel_website/
-          sudo rm -rf /var/www/html/index.html
-          sudo cp ./static-web/* /var/www/html/
-          sudo systemctl restart httpd
+          rm -rf /var/www/html/index.html
+          cp ./static-web/* /var/www/html/
+          systemctl restart httpd
+Outputs:
+  WebsiteURL:
+      Value: !Sub
+        - http://${PublicAddress}
+        - PublicAddress: !GetAtt WebHost.PublicDnsName
+      Description: Kittens Carousel Application URL  
