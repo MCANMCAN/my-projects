@@ -25,6 +25,6 @@ def main_post():
     else:
         return render_template('index.html', developer_name='Mehmet Can', not_valid=False)
 
-#if __name__ == '__main__':
+if __name__ == '__main__':
     # app.run(debug=True)
-#    app.run(host='0.0.0.0', port=80)
+    app.run(host='0.0.0.0', port=80)
