@@ -1,0 +1,71 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: |
+  A web server that is running a simple flask web Roman Numeral Converter app 
+Parameters:
+  sshkey:
+    Description: Select your .pem file
+    Type: AWS::EC2::KeyPair::KeyName
+  VPC:
+    Description: Select VPC
+    Type: AWS::EC2::VPC::Id
+Mappings:
+  RegionImageMap:
+    us-east-1:
+      AMI: ami-0022f774911c1d690
+    us-east-2:
+      AMI: ami-0233c2d874b811deb
+    us-west-1:
+      AMI: ami-0ed05376b59b90e46
+    us-west-2:
+      AMI: ami-0dc8f589abe99f538
+    eu-west-1:
+      AMI: ami-058b1b7fe545997ae
+Resources:
+  FLASKSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "SSH and HTTP access for roman number converter flask application" # Required
+      GroupName: "FlaskWebAccess"
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          FromPort: 22
+          ToPort: 22
+          IpProtocol: tcp
+        - CidrIp: 0.0.0.0/0
+          FromPort: 80
+          ToPort: 80
+          IpProtocol: tcp  
+    VpcId: !Ref VPC
+
+  MainInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !FindInMap 
+        - RegionImageMap
+        - !Ref AWS::Region 
+        - AMI
+      InstanceType: t2.micro
+      KeyName: !ref sshkey # should be parameter
+      SecurityGroupIds:
+        !GetAtt FLASKSG.GroupId
+     
+      Tags:
+        - Name : MCAN-Converter
+      
+      UserData: !Base64 | 
+        #!/bin/bash 
+        yum install update -y 
+        yum install git -y 
+        yum install python3-pip -y 
+        sudo pip3 install flask 
+        git clone https://github.com/MCANMCAN/my-projects.git
+        mv my-projects/AWS/Roman-Numerals-Converter . && rm -rf my-projects/ && cd Roman-Numerals-Converter 
+        sudo python3 app.py 
+Outputs:
+  ALBURL:
+    Description: url of INSTANCE
+    Value: !Join
+      - ""
+      - - "http://"
+        - !GetAtt MainInstance.PublicIp
+        - ":80/"
