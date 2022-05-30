@@ -35,8 +35,7 @@ Resources:
           FromPort: 80
           ToPort: 80
           IpProtocol: tcp  
-    VpcId: !Ref VPC
-
+      VpcId: !Ref VPC
   MainInstance:
     Type: AWS::EC2::Instance
     Properties:
@@ -45,12 +44,9 @@ Resources:
         - !Ref AWS::Region 
         - AMI
       InstanceType: t2.micro
-      KeyName: !ref sshkey # should be parameter
-      SecurityGroupIds:
-        !GetAtt FLASKSG.GroupId
-     
-      Tags:
-        - Name : MCAN-Converter
+      KeyName: !Ref sshkey # should be parameter
+      SecurityGroupIds: 
+        - !GetAtt FLASKSG.GroupId   
       
       UserData: !Base64 | 
         #!/bin/bash 
