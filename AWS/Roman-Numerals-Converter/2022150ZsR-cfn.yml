@@ -35,7 +35,7 @@ Resources:
           FromPort: 80
           ToPort: 80
           IpProtocol: tcp  
-    VpcId: !Ref VPC
+      VpcId: !Ref VPC
   MainInstance:
     Type: AWS::EC2::Instance
     Properties:
@@ -44,11 +44,12 @@ Resources:
         - !Ref AWS::Region 
         - AMI
       InstanceType: t2.micro
-      KeyName: !ref sshkey # should be parameter
+      KeyName: !Ref sshkey # should be parameter
       SecurityGroupIds: 
         - !GetAtt FLASKSG.GroupId   
       Tags:
-        - Name : MCAN-Converter
+        - Key: Name
+          Value: !Sub Web Server of ${AWS::StackName} Stack
       
       UserData: !Base64 | 
         #!/bin/bash 
@@ -56,6 +57,7 @@ Resources:
         yum install git -y 
         yum install python3-pip -y 
         sudo pip3 install flask 
+        cd /home/ec2-user
         git clone https://github.com/MCANMCAN/my-projects.git
         mv my-projects/AWS/Roman-Numerals-Converter . && rm -rf my-projects/ && cd Roman-Numerals-Converter 
         sudo python3 app.py 
